@@ -33,7 +33,7 @@ namespace DefaultSerialization.Benchmark
         {
             using MemoryStream stream = new();
 
-            BinarySerializer.Write(stream, _structs);
+            BinarySerializer.Serialize(stream, _structs);
         }
 
         [Benchmark]
@@ -41,7 +41,7 @@ namespace DefaultSerialization.Benchmark
         {
             using MemoryStream stream = new();
 
-            TextSerializer.Write(stream, _structs);
+            TextSerializer.Serialize(stream, _structs);
         }
 
         [Benchmark]

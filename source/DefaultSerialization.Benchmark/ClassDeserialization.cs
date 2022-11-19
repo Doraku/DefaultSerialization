@@ -33,8 +33,8 @@ namespace DefaultSerialization.Benchmark
 
             BigClass[] values = Enumerable.Range(0, DataCount).Select(i => new BigClass { W = Guid.NewGuid().ToString(), X = Guid.NewGuid(), Y = DateTime.Now, Z = i }).ToArray();
 
-            BinarySerializer.Write(_DefaultSerialization_BinarySerializer, values);
-            TextSerializer.Write(_DefaultSerialization_TextSerializer, values);
+            BinarySerializer.Serialize(_DefaultSerialization_BinarySerializer, values);
+            TextSerializer.Serialize(_DefaultSerialization_TextSerializer, values);
             JsonSerializer.Serialize(_System_Text_Json, values);
         }
 
@@ -57,10 +57,10 @@ namespace DefaultSerialization.Benchmark
         }
 
         [Benchmark]
-        public void DefaultSerialization_BinarySerializer() => BinarySerializer.Read<BigClass[]>(_DefaultSerialization_BinarySerializer);
+        public void DefaultSerialization_BinarySerializer() => BinarySerializer.Deserialize<BigClass[]>(_DefaultSerialization_BinarySerializer);
 
         [Benchmark]
-        public void DefaultSerialization_TextSerializer() => TextSerializer.Read<BigClass[]>(_DefaultSerialization_TextSerializer);
+        public void DefaultSerialization_TextSerializer() => TextSerializer.Deserialize<BigClass[]>(_DefaultSerialization_TextSerializer);
 
         [Benchmark]
         public void System_Text_Json() => JsonSerializer.Deserialize<BigClass[]>(_System_Text_Json);

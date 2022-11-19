@@ -31,19 +31,19 @@ namespace DefaultSerialization.Test
             public override int GetHashCode() => X + Y;
         }
 
-        protected override void Write<T>(Stream stream, T obj) => BinarySerializer.Write(stream, obj);
+        protected override void Write<T>(Stream stream, T obj) => BinarySerializer.Serialize(stream, obj);
 
-        protected override T Read<T>(Stream stream) => BinarySerializer.Read<T>(stream);
+        protected override T Read<T>(Stream stream) => BinarySerializer.Deserialize<T>(stream);
 
         [Fact]
-        public void Write_Should_use_context_marshalling()
+        public void Serialize_Should_use_context_marshalling()
         {
             using Stream stream = new MemoryStream();
 
             using BinarySerializationContext context = new BinarySerializationContext()
                 .Marshal<int, string>(i => $"value {i}");
 
-            BinarySerializer.Write(stream, 42, context);
+            BinarySerializer.Serialize(stream, 42, context);
 
             stream.Position = 0;
 
@@ -53,14 +53,14 @@ namespace DefaultSerialization.Test
         }
 
         [Fact]
-        public void Write_Should_use_context_marshalling_When_same_type()
+        public void Serialize_Should_use_context_marshalling_When_same_type()
         {
             using Stream stream = new MemoryStream();
 
             using BinarySerializationContext context = new BinarySerializationContext()
                 .Marshal<int, int>(_ => 1337);
 
-            BinarySerializer.Write(stream, 42, context);
+            BinarySerializer.Serialize(stream, 42, context);
 
             stream.Position = 0;
 
@@ -70,14 +70,14 @@ namespace DefaultSerialization.Test
         }
 
         [Fact]
-        public void Write_Should_use_context_marshalling_for_object()
+        public void Serialize_Should_use_context_marshalling_for_object()
         {
             using Stream stream = new MemoryStream();
 
             using BinarySerializationContext context = new BinarySerializationContext()
                 .Marshal<int, string>(i => $"value {i}");
 
-            BinarySerializer.Write<object>(stream, 42, context);
+            BinarySerializer.Serialize<object>(stream, 42, context);
 
             stream.Position = 0;
 
@@ -87,14 +87,14 @@ namespace DefaultSerialization.Test
         }
 
         [Fact]
-        public void Write_Should_use_context_marshalling_When_sub_field()
+        public void Serialize_Should_use_context_marshalling_When_sub_field()
         {
             using Stream stream = new MemoryStream();
 
             using BinarySerializationContext context = new BinarySerializationContext()
                 .Marshal<int, int>(i => i * 2);
 
-            BinarySerializer.Write(stream, new Point(1, 2), context);
+            BinarySerializer.Serialize(stream, new Point(1, 2), context);
 
             stream.Position = 0;
 
@@ -104,7 +104,7 @@ namespace DefaultSerialization.Test
         }
 
         [Fact]
-        public void Write_Should_use_context_unmarshalling_When_same_type()
+        public void Serialize_Should_use_context_unmarshalling_When_same_type()
         {
             using Stream stream = new MemoryStream();
 
@@ -115,13 +115,13 @@ namespace DefaultSerialization.Test
 
             stream.Position = 0;
 
-            int copy = BinarySerializer.Read<int>(stream, context);
+            int copy = BinarySerializer.Deserialize<int>(stream, context);
 
             Check.That(copy).IsEqualTo(1337);
         }
 
         [Fact]
-        public void Write_Should_use_context_unmarshalling_When_sub_field()
+        public void Serialize_Should_use_context_unmarshalling_When_sub_field()
         {
             using Stream stream = new MemoryStream();
 
@@ -132,13 +132,13 @@ namespace DefaultSerialization.Test
 
             stream.Position = 0;
 
-            Point copy = BinarySerializer.Read<Point>(stream, context);
+            Point copy = BinarySerializer.Deserialize<Point>(stream, context);
 
             Check.That(copy).IsEqualTo(new Point(2, 4));
         }
 
         [Fact]
-        public void Write_Should_use_context_unmarshalling_for_object()
+        public void Serialize_Should_use_context_unmarshalling_for_object()
         {
             using Stream stream = new MemoryStream();
 
@@ -149,7 +149,7 @@ namespace DefaultSerialization.Test
 
             stream.Position = 0;
 
-            object copy = BinarySerializer.Read<object>(stream, context);
+            object copy = BinarySerializer.Deserialize<object>(stream, context);
 
             Check.That(copy).IsInstanceOf<string>().And.IsEqualTo("value 42");
         }
