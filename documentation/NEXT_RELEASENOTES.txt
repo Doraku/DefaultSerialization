@@ -1,0 +1,14 @@
+## Breaking changes
+
+- Entity.Set, EntitySetSameAs and EntitySetSameAsWorld will now reenable the component if it was disabled
+
+## New features
+
+- World.SetMaxCapacity can now be called multiple times for the same component type (#149)
+- added World.SubscribeWorldComponentAdded method (#165)
+- added World.SubscribeWorldComponentChanged method (#165)
+- added World.SubscribeWorldComponentRemoved method (#165)
+
+## Bug fixes
+
+- fixed TextSerializer not using invariant culture during serialization (#170 thanks to @Helco)

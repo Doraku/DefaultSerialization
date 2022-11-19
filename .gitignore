@@ -1,0 +1,9 @@
+﻿/**/obj
+/**/bin
+/**/.vs
+/**/.vscode
+/**/.idea/
+/**/*.vspscc
+/**/*.user
+/**/*.snk
+/build

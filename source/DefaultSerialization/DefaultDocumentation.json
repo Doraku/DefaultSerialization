@@ -1,0 +1,17 @@
+﻿{
+	"OutputDirectoryPath": "..\\..\\documentation\\api",
+	"GeneratedAccessModifiers": "Public,Protected,ProtectedInternal",
+	"GeneratedPages": "Assembly,Types,Members",
+	"AssemblyPageName": "DefaultSerialization",
+	"FileNameFactory": "Name",
+	"LinksOutputFilePath": "..\\..\\documentation\\DefaultSerialization.txt",
+	"LinksBaseUrl": "https://github.com/Doraku/DefaultSerialization/blob/master/documentation/api/",
+	"NamespaceDocItem": {
+		"Sections": [
+			"Title",
+			"summary",
+			"TableOfContents"
+		],
+		"Markdown.TableOfContentsModes": "IncludeKind,IncludeSummary"
+	}
+}

@@ -1,0 +1,36 @@
+name: code coverage
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/CodeCoverage.yml'
+      - 'source/DefaultSerialization/**'
+      - 'source/DefaultSerialization.Test/**'
+
+jobs:
+  code_coverage:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '7.0.x'
+
+    - name: Collect coverage for net7.0
+      run: dotnet test source\DefaultSerialization.Test\DefaultSerialization.Test.csproj -c Release -f net7.0
+      env:
+        CollectCoverage: true
+        CoverletOutputFormat: lcov
+        CoverletOutput: ..\..\build\lcov.info
+        TEST: true
+
+    - name: Upload to coverall
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: 'build\lcov.net7.0.info'
