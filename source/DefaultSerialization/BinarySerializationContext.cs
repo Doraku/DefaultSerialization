@@ -34,7 +34,7 @@ namespace DefaultSerialization
         /// <typeparam name="TOut">The resulting type of the conversion.</typeparam>
         /// <param name="converter">The function used for the conversion.</param>
         /// <returns>Returns itself.</returns>
-        public BinarySerializationContext Marshal<TIn, TOut>(Func<TIn?, TOut?>? converter)
+        public BinarySerializationContext Marshal<TIn, TOut>(Func<TIn, TOut>? converter)
         {
             SerializationContext<TIn>.SetWriteActions(
                 _id,
@@ -54,7 +54,7 @@ namespace DefaultSerialization
         /// <typeparam name="TOut">The resulting type of the conversion.</typeparam>
         /// <param name="converter">The function used for the conversion.</param>
         /// <returns>Returns itself.</returns>
-        public BinarySerializationContext Unmarshal<TIn, TOut>(Func<TIn?, TOut?>? converter)
+        public BinarySerializationContext Unmarshal<TIn, TOut>(Func<TIn?, TOut>? converter)
         {
             SerializationContext<TIn>.SetReadActions(
                 _id,

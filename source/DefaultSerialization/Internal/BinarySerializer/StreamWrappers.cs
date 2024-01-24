@@ -56,7 +56,7 @@ namespace DefaultSerialization.Internal.BinarySerializer
             }
         }
 
-        public void WriteValue<T>(in T value)
+        public void WriteValue<T>([MaybeNull] in T value)
         {
             if (Context?.TypeMarshalling != null)
             {
