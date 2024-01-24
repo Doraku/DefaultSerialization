@@ -5,21 +5,11 @@ namespace DefaultSerialization.Internal
 {
     internal sealed class IntDispenser
     {
-        #region Fields
-
         private readonly ConcurrentStack<int> _freeInts;
 
         private int _lastInt;
 
-        #endregion
-
-        #region Properties
-
         public int LastInt => _lastInt;
-
-        #endregion
-
-        #region Initialisation
 
         public IntDispenser(int startInt)
         {
@@ -27,10 +17,6 @@ namespace DefaultSerialization.Internal
 
             _lastInt = startInt;
         }
-
-        #endregion
-
-        #region Methods
 
         public int GetFreeInt()
         {
@@ -43,7 +29,5 @@ namespace DefaultSerialization.Internal
         }
 
         public void ReleaseInt(int releasedInt) => _freeInts.Push(releasedInt);
-
-        #endregion
     }
 }

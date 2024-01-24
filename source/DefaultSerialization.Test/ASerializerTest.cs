@@ -9,8 +9,6 @@ namespace DefaultSerialization.Test
 {
     public abstract class ASerializerTest
     {
-        #region Types
-
         private struct SimpleStruct
         {
             public int _1;
@@ -27,8 +25,6 @@ namespace DefaultSerialization.Test
 
         private class SimpleClass
         {
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1169:Make field read-only.")]
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier")]
             private int _1;
             private readonly int _2;
             private int P3 { get; }
@@ -118,10 +114,6 @@ namespace DefaultSerialization.Test
             public override int GetHashCode() => _1;
         }
 
-        #endregion
-
-        #region Methods
-
         private void Test<T>(T obj)
         {
             using Stream stream = new MemoryStream();
@@ -178,10 +170,6 @@ namespace DefaultSerialization.Test
 
         protected abstract T Read<T>(Stream stream);
 
-        #endregion
-
-        #region Tests
-
         [Fact]
         public void Serialize_Should_throw_When_stream_is_null() => Check
             .ThatCode(() => Write(null, true))
@@ -231,10 +219,7 @@ namespace DefaultSerialization.Test
         public void Should_handle_struct_with_class() => Test(new StructWithClass { _1 = new SimpleStruct(0), _2 = new SimpleClass(0), _3 = "kikoolol" });
 
         [Fact]
-#if !NET452
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1825")]
-#endif
-        public void Should_handle_empty_array() => TestArray(new object[0]);
+        public void Should_handle_empty_array() => TestArray(Array.Empty<object>());
 
         [Fact]
         public void Should_handle_struct_array() => TestArray(Enumerable.Range(0, 42).ToArray());
@@ -267,19 +252,12 @@ namespace DefaultSerialization.Test
         public void Should_handle_struct_as_object() => Test<object>(42);
 
         [Fact]
-#if !NET452
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1825")]
-#endif
-        public void Should_handle_complex_generic_type_as_object() => Test<object>(new Dictionary<string, DerivedClass[,,]>[0]);
+        public void Should_handle_complex_generic_type_as_object() => Test<object>(Array.Empty<Dictionary<string, DerivedClass[,,]>>());
 
         [Fact]
         public void Should_handle_Type() => Test(typeof(Dictionary<string, DerivedClass[,,]>[]));
 
-#if !NET452 // unsuported
         [Fact]
         public void Should_handle_class_with_no_default_constructor() => Test(new NoConstructorClass(42));
-#endif
-
-        #endregion
     }
 }

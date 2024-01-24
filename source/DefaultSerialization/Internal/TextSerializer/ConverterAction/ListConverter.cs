@@ -8,8 +8,8 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         private const string _listBegin = "[";
         private const string _listEnd = "]";
 
-        private static readonly MethodInfo _writeMethod = typeof(ListConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write));
-        private static readonly MethodInfo _readMethod = typeof(ListConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read));
+        private static readonly MethodInfo _writeMethod = typeof(ListConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write))!;
+        private static readonly MethodInfo _readMethod = typeof(ListConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read))!;
 
         private static void Write<T>(StreamWriterWrapper writer, in List<T> value)
         {
@@ -25,14 +25,14 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
             writer.WriteLine(_listEnd);
         }
 
-        private static List<T> Read<T>(StreamReaderWrapper reader)
+        private static List<T?> Read<T>(StreamReaderWrapper reader)
         {
             if (!reader.TryReadUntil(_listBegin))
             {
                 StreamReaderWrapper.Throw<List<T>>();
             }
 
-            List<T> value = new();
+            List<T?> value = new();
             while (!reader.EndOfStream && !reader.TryPeek(_listEnd))
             {
                 value.Add(Converter<T>.Read(reader));

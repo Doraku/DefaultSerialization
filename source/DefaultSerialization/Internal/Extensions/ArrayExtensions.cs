@@ -2,7 +2,7 @@
 
 namespace System
 {
-    internal static class ArrayExtension
+    internal static class ArrayExtensions
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InnerEnsureLength<T>(ref T[] array, int index, int maxLength)

@@ -40,8 +40,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Marshal<int, string>(i => $"value {i}");
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Marshal<int, string>(i => $"value {i}");
 
             BinarySerializer.Serialize(stream, 42, context);
 
@@ -57,8 +58,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Marshal<int, int>(_ => 1337);
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Marshal<int, int>(_ => 1337);
 
             BinarySerializer.Serialize(stream, 42, context);
 
@@ -74,8 +76,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Marshal<int, string>(i => $"value {i}");
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Marshal<int, string>(i => $"value {i}");
 
             BinarySerializer.Serialize<object>(stream, 42, context);
 
@@ -91,8 +94,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Marshal<int, int>(i => i * 2);
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Marshal<int, int>(i => i * 2);
 
             BinarySerializer.Serialize(stream, new Point(1, 2), context);
 
@@ -108,8 +112,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Unmarshal<int, int>(_ => 1337);
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Unmarshal<int, int>(_ => 1337);
 
             Write(stream, 42);
 
@@ -125,8 +130,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Unmarshal<int, int>(i => i * 2);
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Unmarshal<int, int>(i => i * 2);
 
             Write(stream, new Point(1, 2));
 
@@ -142,8 +148,9 @@ namespace DefaultSerialization.Test
         {
             using Stream stream = new MemoryStream();
 
-            using BinarySerializationContext context = new BinarySerializationContext()
-                .Unmarshal<int, string>(i => $"value {i}");
+            using BinarySerializationContext context = new BinarySerializationContext();
+
+            context.Unmarshal<int, string>(i => $"value {i}");
 
             Write<object>(stream, 42);
 

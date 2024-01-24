@@ -90,8 +90,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Marshal<int, string>(i => $"value {i}");
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Marshal<int, string>(i => $"value {i}");
 
             TextSerializer.Serialize(stream, 42, context);
 
@@ -107,8 +108,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Marshal<int, int>(_ => 1337);
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Marshal<int, int>(_ => 1337);
 
             TextSerializer.Serialize(stream, 42, context);
 
@@ -124,8 +126,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Marshal<int, string>(i => $"value {i}");
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Marshal<int, string>(i => $"value {i}");
 
             TextSerializer.Serialize<object>(stream, 42, context);
 
@@ -141,8 +144,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Marshal<int, int>(i => i * 2);
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Marshal<int, int>(i => i * 2);
 
             TextSerializer.Serialize(stream, new Point(1, 2), context);
 
@@ -158,8 +162,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Unmarshal<int, int>(_ => 1337);
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Unmarshal<int, int>(_ => 1337);
 
             Write(stream, 42);
 
@@ -175,8 +180,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Unmarshal<int, int>(i => i * 2);
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Unmarshal<int, int>(i => i * 2);
 
             Write(stream, new Point(1, 2));
 
@@ -192,8 +198,9 @@ lol""";
         {
             using Stream stream = new MemoryStream();
 
-            using TextSerializationContext context = new TextSerializationContext()
-                .Unmarshal<int, string>(i => $"value {i}");
+            using TextSerializationContext context = new TextSerializationContext();
+
+            context.Unmarshal<int, string>(i => $"value {i}");
 
             Write<object>(stream, 42);
 

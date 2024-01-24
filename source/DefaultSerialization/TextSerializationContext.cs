@@ -10,15 +10,9 @@ namespace DefaultSerialization
     /// </summary>
     public sealed class TextSerializationContext : IDisposable
     {
-        #region Fields
-
         private readonly int _id;
 
-        internal string TypeMarshalling;
-
-        #endregion
-
-        #region Initialisation
+        internal string? TypeMarshalling;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextSerializationContext"/> class.
@@ -28,13 +22,9 @@ namespace DefaultSerialization
             _id = SerializationContext.GetId();
         }
 
-        #endregion
+        internal WriteAction<T>? GetValueWrite<T>() => _id < SerializationContext<T>.Actions.Length ? SerializationContext<T>.Actions[_id].ValueWrite as WriteAction<T> : null;
 
-        #region Methods
-
-        internal WriteAction<T> GetValueWrite<T>() => _id < SerializationContext<T>.Actions.Length ? SerializationContext<T>.Actions[_id].ValueWrite as WriteAction<T> : null;
-
-        internal ReadAction<TOut> GetValueRead<TIn, TOut>() => _id < SerializationContext<TIn>.Actions.Length ? SerializationContext<TIn>.Actions[_id].ValueRead as ReadAction<TOut> : null;
+        internal ReadAction<TOut>? GetValueRead<TIn, TOut>() => _id < SerializationContext<TIn>.Actions.Length ? SerializationContext<TIn>.Actions[_id].ValueRead as ReadAction<TOut> : null;
 
         /// <summary>
         /// Adds a convertion between the type <typeparamref name="TIn"/> and the type <typeparamref name="TOut"/> during a serialization operation.
@@ -43,7 +33,7 @@ namespace DefaultSerialization
         /// <typeparam name="TOut">The resulting type of the conversion.</typeparam>
         /// <param name="converter">The function used for the conversion.</param>
         /// <returns>Returns itself.</returns>
-        public TextSerializationContext Marshal<TIn, TOut>(Func<TIn, TOut> converter)
+        public TextSerializationContext Marshal<TIn, TOut>(Func<TIn?, TOut?>? converter)
         {
             SerializationContext<TIn>.SetWriteActions(
                 _id,
@@ -63,16 +53,14 @@ namespace DefaultSerialization
         /// <typeparam name="TOut">The resulting type of the conversion.</typeparam>
         /// <param name="converter">The function used for the conversion.</param>
         /// <returns>Returns itself.</returns>
-        public TextSerializationContext Unmarshal<TIn, TOut>(Func<TIn, TOut> converter)
+        public TextSerializationContext Unmarshal<TIn, TOut>(Func<TIn?, TOut?>? converter)
         {
             SerializationContext<TIn>.SetReadActions(
                 _id,
-                converter is null ? null : new ReadAction<TOut>((StreamReaderWrapper reader) => converter(reader.ReadValue<TIn>())));
+                converter is null ? null : new ReadAction<TOut?>((StreamReaderWrapper reader) => converter(reader.ReadValue<TIn>())));
 
             return this;
         }
-
-        #endregion
 
         #region IDisposable
 

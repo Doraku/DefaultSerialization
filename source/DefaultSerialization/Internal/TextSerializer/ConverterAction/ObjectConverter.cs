@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,11 +10,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
 {
     internal static class ObjectConverter<T>
     {
-        #region Types
-
-        private delegate void ReadFieldAction(StreamReaderWrapper reader, ref T value);
-
-        #endregion
+        private delegate void ReadFieldAction(StreamReaderWrapper reader, [MaybeNull] ref T value);
 
         private const string _objectBegin = "{";
         private const string _objectEnd = "}";
@@ -34,17 +31,17 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
                 return name.Trim('_');
             }
 
-            TypeInfo typeInfo = typeof(T).GetTypeInfo();
+            TypeInfo? typeInfo = typeof(T).GetTypeInfo();
 
             _isValue = typeInfo.IsValueType;
             _readFieldActions = new Dictionary<string, ReadFieldAction>();
 
-            MethodInfo addIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.AddIndentation));
-            MethodInfo removeIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.RemoveIndentation));
-            MethodInfo writeIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteIndentation));
-            MethodInfo writeSpace = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteSpace));
-            MethodInfo writeLine = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteLine));
-            MethodInfo write = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.Write));
+            MethodInfo addIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.AddIndentation))!;
+            MethodInfo removeIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.RemoveIndentation))!;
+            MethodInfo writeIndentation = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteIndentation))!;
+            MethodInfo writeSpace = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteSpace))!;
+            MethodInfo writeLine = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.WriteLine))!;
+            MethodInfo write = typeof(StreamWriterWrapper).GetTypeInfo().GetDeclaredMethod(nameof(StreamWriterWrapper.Write))!;
 
             ParameterExpression writer = Expression.Parameter(typeof(StreamWriterWrapper));
             ParameterExpression value = Expression.Parameter(typeof(T).MakeByRefType());
@@ -65,7 +62,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
                         Expression.Call(writer, write, Expression.Constant(name)),
                         Expression.Call(writer, writeSpace),
                         Expression.Call(
-                            typeof(Converter<>).MakeGenericType(fieldInfo.FieldType).GetTypeInfo().GetDeclaredMethod(nameof(Converter<string>.Write)),
+                            typeof(Converter<>).MakeGenericType(fieldInfo.FieldType).GetTypeInfo().GetDeclaredMethod(nameof(Converter<string>.Write))!,
                             writer,
                             Expression.Field(value, fieldInfo)));
 
@@ -78,7 +75,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
 
                     writeExpressions.Add(writeField);
 
-                    DynamicMethod readMethod = new($"Set_{nameof(T)}_{fieldInfo.Name}", typeof(void), new[] { typeof(StreamReaderWrapper), typeof(T).MakeByRefType() }, typeof(ObjectConverter<T>), true);
+                    DynamicMethod readMethod = new($"Set_{nameof(T)}_{fieldInfo.Name}", typeof(void), [typeof(StreamReaderWrapper), typeof(T).MakeByRefType()], typeof(ObjectConverter<T>), true);
                     ILGenerator readGenerator = readMethod.GetILGenerator();
                     readGenerator.Emit(OpCodes.Ldarg_1);
                     if (!typeInfo.IsValueType)
@@ -86,7 +83,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
                         readGenerator.Emit(OpCodes.Ldind_Ref);
                     }
                     readGenerator.Emit(OpCodes.Ldarg_0);
-                    readGenerator.Emit(OpCodes.Call, typeof(Converter<>).MakeGenericType(fieldInfo.FieldType).GetTypeInfo().GetDeclaredMethod(nameof(Converter<T>.Read)));
+                    readGenerator.Emit(OpCodes.Call, typeof(Converter<>).MakeGenericType(fieldInfo.FieldType).GetTypeInfo().GetDeclaredMethod(nameof(Converter<T>.Read))!);
                     readGenerator.Emit(OpCodes.Stfld, fieldInfo);
                     readGenerator.Emit(OpCodes.Ret);
 
@@ -107,22 +104,16 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         {
             if (!reader.TryReadUntil(_objectBegin))
             {
-                StreamReaderWrapper.Throw<T[]>();
+                StreamReaderWrapper.Throw<T>();
             }
 
-            T value = _isValue ? default : ObjectInitializer<T>.Create();
+            T value = _isValue ? default! : ObjectInitializer<T>.Create();
 
             while (!reader.EndOfStream && !reader.TryPeek(_objectEnd))
             {
-                if (_readFieldActions.TryGetValue(
-#if NETSTANDARD2_1_OR_GREATER
-                    reader.Read().ToString(),
-#else
-                    reader.Read(),
-#endif
-                    out ReadFieldAction action))
+                if (_readFieldActions.TryGetValue(reader.Read(), out ReadFieldAction? action))
                 {
-                    action(reader, ref value);
+                    action(reader, ref value!);
                 }
                 else
                 {
@@ -130,7 +121,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
                 }
             }
 
-            reader.Read();
+            reader.ReadAsSpan();
 
             return value;
         }

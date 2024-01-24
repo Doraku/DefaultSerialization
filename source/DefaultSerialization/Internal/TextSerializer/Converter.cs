@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using DefaultSerialization.Internal.TextSerializer.ConverterAction;
@@ -8,13 +9,12 @@ namespace DefaultSerialization.Internal.TextSerializer
 {
     internal static unsafe class Converter
     {
-        #region Types
-
         private interface IReadActionWrapper
         {
-            ReadAction<T> Get<T>(TextSerializationContext context);
+            ReadAction<T> Get<T>(TextSerializationContext? context);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812", Justification = "Instentiated by reflection")]
         private sealed class ClassReadActionWrapper<TReal> : IReadActionWrapper
         {
             private readonly ReadAction<TReal> _readAction;
@@ -24,9 +24,10 @@ namespace DefaultSerialization.Internal.TextSerializer
                 _readAction = readAction;
             }
 
-            public ReadAction<T> Get<T>(TextSerializationContext context) => context?.GetValueRead<TReal, T>() ?? (ReadAction<T>)(Delegate)_readAction;
+            public ReadAction<T> Get<T>(TextSerializationContext? context) => context?.GetValueRead<TReal, T>() ?? (ReadAction<T>)(Delegate)_readAction;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812", Justification = "Instentiated by reflection")]
         private sealed class StructReadActionWrapper<TReal> : IReadActionWrapper
             where TReal : struct
         {
@@ -37,32 +38,25 @@ namespace DefaultSerialization.Internal.TextSerializer
                 _readAction = (ReadAction<TReal>)readAction;
             }
 
-            public ReadAction<T> Get<T>(TextSerializationContext context) => context?.GetValueRead<TReal, T>() ?? (typeof(TReal) == typeof(T)
+            public ReadAction<T> Get<T>(TextSerializationContext? context)
+                => context?.GetValueRead<TReal, T>() ?? (typeof(TReal) == typeof(T)
                 ? (ReadAction<T>)(Delegate)_readAction
                 : ((StreamReaderWrapper r) => (T)(object)_readAction(r)));
         }
 
-        #endregion
-
-        #region Fields
-
         private static readonly ConcurrentDictionary<Type, WriteAction<object>> _writeActions = new();
         private static readonly ConcurrentDictionary<Type, IReadActionWrapper> _readActions = new();
 
-        #endregion
-
-        #region Methods
-
         public static WriteAction<object> GetWriteAction(Type type)
         {
-            if (!_writeActions.TryGetValue(type, out WriteAction<object> writeAction))
+            if (!_writeActions.TryGetValue(type, out WriteAction<object>? writeAction))
             {
                 lock (_writeActions)
                 {
                     if (!_writeActions.ContainsKey(type))
                     {
                         writeAction = (WriteAction<object>)typeof(Converter<>).MakeGenericType(type).GetTypeInfo()
-                            .GetDeclaredMethod(nameof(Converter<string>.WrappedWrite))
+                            .GetDeclaredMethod(nameof(Converter<string>.WrappedWrite))!
                             .CreateDelegate(typeof(WriteAction<object>));
 
                         _writeActions.AddOrUpdate(type, writeAction, (_, d) => d);
@@ -70,12 +64,12 @@ namespace DefaultSerialization.Internal.TextSerializer
                 }
             }
 
-            return writeAction;
+            return writeAction!;
         }
 
-        public static ReadAction<T> GetReadAction<T>(Type type, TextSerializationContext context)
+        public static ReadAction<T> GetReadAction<T>(Type type, TextSerializationContext? context)
         {
-            if (!_readActions.TryGetValue(type, out IReadActionWrapper readAction))
+            if (!_readActions.TryGetValue(type, out IReadActionWrapper? readAction))
             {
                 lock (_readActions)
                 {
@@ -87,31 +81,23 @@ namespace DefaultSerialization.Internal.TextSerializer
                             (type.GetTypeInfo().IsValueType ? typeof(StructReadActionWrapper<>) : typeof(ClassReadActionWrapper<>)).MakeGenericType(type),
                             typeof(Converter<>)
                                 .MakeGenericType(type).GetTypeInfo()
-                                .GetDeclaredMethod(nameof(Converter<string>.Read))
-                                .CreateDelegate(typeof(ReadAction<>).MakeGenericType(type)));
+                                .GetDeclaredMethod(nameof(Converter<string>.Read))!
+                                .CreateDelegate(typeof(ReadAction<>).MakeGenericType(type)))!;
 
                         _readActions.AddOrUpdate(type, readAction, (_, d) => d);
                     }
                 }
             }
 
-            return readAction.Get<T>(context);
+            return readAction!.Get<T>(context);
         }
-
-        #endregion
     }
 
     internal static class Converter<T>
     {
-        #region Fields
-
         public static readonly bool IsSealed;
         public static readonly WriteAction<T> WriteAction;
         public static readonly ReadAction<T> ReadAction;
-
-        #endregion
-
-        #region Initialisation
 
         static Converter()
         {
@@ -120,7 +106,7 @@ namespace DefaultSerialization.Internal.TextSerializer
             (WriteAction, ReadAction) = typeof(T) switch
             {
                 Type type when type == typeof(Type) => TypeConverter.GetActions<T>(),
-                Type type when type.IsAbstract() => (null, null),
+                Type type when type.IsAbstract() => (InvalidWrite, InvalidRead),
                 Type type when type.IsArray => ArrayConverter.GetActions<T>(),
                 Type type when type.IsList() => ListConverter.GetActions<T>(),
                 Type type when type.IsDictionary() => DictionaryConverter.GetActions<T>(),
@@ -144,17 +130,23 @@ namespace DefaultSerialization.Internal.TextSerializer
             };
         }
 
-        #endregion
+        private static T InvalidRead(StreamReaderWrapper _) => throw new InvalidOperationException();
 
-        #region Methods
+        private static void InvalidWrite(StreamWriterWrapper _, in T __) => throw new InvalidOperationException();
 
-        private static (WriteAction<T>, ReadAction<T>) GetActions<TReal>(WriteAction<TReal> write, Parse<TReal> read) => (
+        private static (WriteAction<T>, ReadAction<T>) GetActions<TReal>(WriteAction<TReal> write, ParseAction<TReal> read) => (
             (WriteAction<T>)(Delegate)write,
-            (ReadAction<T>)(Delegate)new ReadAction<TReal>(reader => read(reader.Read())));
+            (ReadAction<T>)(Delegate)new ReadAction<TReal>(reader => read(
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
+                reader.ReadAsSpan()
+#else
+                reader.Read()
+#endif
+                )));
 
-        public static void Write(StreamWriterWrapper writer, in T value)
+        public static void Write(StreamWriterWrapper writer, [MaybeNull] in T value)
         {
-            WriteAction<T> action = writer.Context?.GetValueWrite<T>();
+            WriteAction<T>? action = writer.Context?.GetValueWrite<T>();
             if (action is null)
             {
                 writer.WriteValue(value);
@@ -165,15 +157,14 @@ namespace DefaultSerialization.Internal.TextSerializer
             }
         }
 
+        [return: MaybeNull]
         public static T Read(StreamReaderWrapper reader)
         {
-            ReadAction<T> action = reader.Context?.GetValueRead<T, T>();
+            ReadAction<T>? action = reader.Context?.GetValueRead<T, T>();
 
             return action is null ? reader.ReadValue<T>() : action(reader);
         }
 
         public static void WrappedWrite(StreamWriterWrapper writer, in object value) => Write(writer, (T)value);
-
-        #endregion
     }
 }

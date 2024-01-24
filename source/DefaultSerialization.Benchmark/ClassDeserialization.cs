@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 namespace DefaultSerialization.Benchmark
 {
     [MemoryDiagnoser]
-    public class ClassDeserialization : IDisposable
+    public sealed class ClassDeserialization : IDisposable
     {
         private sealed class BigClass
         {

@@ -8,8 +8,8 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         private const string _arrayBegin = "[";
         private const string _arrayEnd = "]";
 
-        private static readonly MethodInfo _writeMethod = typeof(ArrayConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write));
-        private static readonly MethodInfo _readMethod = typeof(ArrayConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read));
+        private static readonly MethodInfo _writeMethod = typeof(ArrayConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write))!;
+        private static readonly MethodInfo _readMethod = typeof(ArrayConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read))!;
 
         private static void Write<T>(StreamWriterWrapper writer, in T[] value)
         {
@@ -25,14 +25,14 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
             writer.WriteLine(_arrayEnd);
         }
 
-        private static T[] Read<T>(StreamReaderWrapper reader)
+        private static T?[] Read<T>(StreamReaderWrapper reader)
         {
             if (!reader.TryReadUntil(_arrayBegin))
             {
                 StreamReaderWrapper.Throw<T[]>();
             }
 
-            List<T> value = new();
+            List<T?> value = new();
             while (!reader.EndOfStream && !reader.TryPeek(_arrayEnd))
             {
                 value.Add(Converter<T>.Read(reader));
@@ -42,7 +42,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         }
 
         public static (WriteAction<T>, ReadAction<T>) GetActions<T>() => (
-            (WriteAction<T>)_writeMethod.MakeGenericMethod(typeof(T).GetElementType()).CreateDelegate(typeof(WriteAction<T>)),
-            (ReadAction<T>)_readMethod.MakeGenericMethod(typeof(T).GetElementType()).CreateDelegate(typeof(ReadAction<T>)));
+            (WriteAction<T>)_writeMethod.MakeGenericMethod(typeof(T).GetElementType()!).CreateDelegate(typeof(WriteAction<T>)),
+            (ReadAction<T>)_readMethod.MakeGenericMethod(typeof(T).GetElementType()!).CreateDelegate(typeof(ReadAction<T>)));
     }
 }

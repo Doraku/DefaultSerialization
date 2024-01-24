@@ -8,10 +8,11 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         private const string _dictionaryBegin = "[";
         private const string _dictionaryEnd = "]";
 
-        private static readonly MethodInfo _writeMethod = typeof(DictionaryConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write));
-        private static readonly MethodInfo _readMethod = typeof(DictionaryConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read));
+        private static readonly MethodInfo _writeMethod = typeof(DictionaryConverter).GetTypeInfo().GetDeclaredMethod(nameof(Write))!;
+        private static readonly MethodInfo _readMethod = typeof(DictionaryConverter).GetTypeInfo().GetDeclaredMethod(nameof(Read))!;
 
         private static void Write<TKey, TValue>(StreamWriterWrapper writer, in Dictionary<TKey, TValue> value)
+            where TKey : notnull
         {
             writer.WriteLine(_dictionaryBegin);
             writer.AddIndentation();
@@ -26,6 +27,7 @@ namespace DefaultSerialization.Internal.TextSerializer.ConverterAction
         }
 
         private static Dictionary<TKey, TValue> Read<TKey, TValue>(StreamReaderWrapper reader)
+            where TKey : notnull
         {
             if (!reader.TryReadUntil(_dictionaryBegin))
             {

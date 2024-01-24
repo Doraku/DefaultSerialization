@@ -6,7 +6,7 @@ namespace DefaultSerialization.Internal
     {
         private static readonly IntDispenser _idDispenser;
 
-        public static event Action<int> Disposed;
+        public static event Action<int>? Disposed;
 
         static SerializationContext()
         {
@@ -26,8 +26,8 @@ namespace DefaultSerialization.Internal
     {
         public struct SerializationActions
         {
-            public Delegate ValueWrite;
-            public Delegate ValueRead;
+            public Delegate? ValueWrite;
+            public Delegate? ValueRead;
         }
 
         private static readonly object _lockObject;
@@ -38,7 +38,7 @@ namespace DefaultSerialization.Internal
         {
             _lockObject = new object();
 
-            Actions = EmptyArray<SerializationActions>.Value;
+            Actions = Array.Empty<SerializationActions>();
 
             SerializationContext.Disposed += id =>
             {
@@ -52,21 +52,21 @@ namespace DefaultSerialization.Internal
             };
         }
 
-        public static void SetWriteActions(int contextId, Delegate value)
+        public static void SetWriteActions(int contextId, Delegate? value)
         {
             lock (_lockObject)
             {
-                ArrayExtension.EnsureLength(ref Actions, contextId);
+                ArrayExtensions.EnsureLength(ref Actions, contextId);
 
                 Actions[contextId].ValueWrite = value;
             }
         }
 
-        public static void SetReadActions(int contextId, Delegate value)
+        public static void SetReadActions(int contextId, Delegate? value)
         {
             lock (_lockObject)
             {
-                ArrayExtension.EnsureLength(ref Actions, contextId);
+                ArrayExtensions.EnsureLength(ref Actions, contextId);
 
                 Actions[contextId].ValueRead = value;
             }

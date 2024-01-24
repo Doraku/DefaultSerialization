@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace System
 {
-    internal static class TypeExtension
+    internal static class TypeExtensions
     {
         public static bool IsUnmanaged(this Type type) => type.GetTypeInfo().IsUnmanaged();
 

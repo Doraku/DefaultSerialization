@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using DefaultSerialization.Internal.BinarySerializer;
 
@@ -9,8 +10,6 @@ namespace DefaultSerialization
     /// </summary>
     public sealed class BinarySerializer
     {
-        #region Methods
-
         /// <summary>
         /// Writes an object of type <typeparamref name="T"/> on the given stream.
         /// </summary>
@@ -19,13 +18,11 @@ namespace DefaultSerialization
         /// <param name="value">The object to serialize.</param>
         /// <param name="context">The <see cref="BinarySerializationContext"/> used to convert type during serialization.</param>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        public static void Serialize<T>(Stream stream, in T value, BinarySerializationContext context)
+        public static void Serialize<T>(Stream stream, [MaybeNull] in T value, BinarySerializationContext? context)
         {
-            stream.ThrowIfNull();
+            ArgumentNullException.ThrowIfNull(stream);
 
-            using StreamWriterWrapper writer = new(stream, context);
-
-            Converter<T>.Write(writer, value);
+            Converter<T>.Write(new StreamWriterWrapper(stream, context), value);
         }
 
         /// <summary>
@@ -35,7 +32,7 @@ namespace DefaultSerialization
         /// <param name="stream">The <see cref="Stream"/> instance on which the object is to be serialized.</param>
         /// <param name="value">The object to serialize.</param>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        public static void Serialize<T>(Stream stream, in T value) => Serialize(stream, value, null);
+        public static void Serialize<T>(Stream stream, [MaybeNull] in T value) => Serialize(stream, value, null);
 
         /// <summary>
         /// Read an object of type <typeparamref name="T"/> from the given stream.
@@ -45,9 +42,10 @@ namespace DefaultSerialization
         /// <param name="context">The <see cref="BinarySerializationContext"/> used to convert type during deserialization.</param>
         /// <returns>The object deserialized.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        public static T Deserialize<T>(Stream stream, BinarySerializationContext context)
+        [return: MaybeNull]
+        public static T Deserialize<T>(Stream stream, BinarySerializationContext? context)
         {
-            stream.ThrowIfNull();
+            ArgumentNullException.ThrowIfNull(stream);
 
             using StreamReaderWrapper reader = new(stream, context);
 
@@ -61,8 +59,7 @@ namespace DefaultSerialization
         /// <param name="stream">The <see cref="Stream"/> instance from which the object is to be deserialized.</param>
         /// <returns>The object deserialized.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+        [return: MaybeNull]
         public static T Deserialize<T>(Stream stream) => Deserialize<T>(stream, null);
-
-        #endregion
     }
 }

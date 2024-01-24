@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
 	<PropertyGroup Label="Compilation">
 		<TargetFrameworks>
-			netstandard1.1;
-			netstandard2.0;
-			netstandard2.1;
-		</TargetFrameworks>
+      netstandard1.1;
+      netstandard2.0;
+      netstandard2.1;
+      net8.0;
+    </TargetFrameworks>
+    <Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
@@ -15,14 +18,16 @@
 
 	<ItemGroup Label="Reference" Condition="'$(TargetFramework)'=='netstandard1.1'">
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
-	<ItemGroup Label="Reference" Condition="'$(TargetFramework)'=='netstandard1.1' Or '$(TargetFramework)'=='netstandard2.0'">
+  </ItemGroup>
+  
+  <ItemGroup Label="Reference" Condition="'$(TargetFramework)'=='netstandard1.1' Or '$(TargetFramework)'=='netstandard2.0'">
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 		<PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
 	</ItemGroup>
+  
 	<ItemGroup>
     <PackageReference Include="DefaultDocumentation" Version="0.8.2" PrivateAssets="all" Condition="'$(GITHUB_ACTIONS)' == 'true' AND '$(TEST)' != 'true' AND '$(CI_VERSION)' != 'true'" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 
 	<PropertyGroup Label="Package">
@@ -62,4 +67,5 @@
 			<PackageReleaseNotes>@(ReleaseNotesLines, '%0a')</PackageReleaseNotes>
 		</PropertyGroup>
 	</Target>
+  
 </Project>

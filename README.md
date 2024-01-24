@@ -14,8 +14,7 @@
 
 # Requirements
 DefaultSerialization heavily uses features from C#7.0 and Span from the System.Memory package, compatible from .NETStandard 1.1.  
-For development, a C#9.0 compatible environment, net framework 4.8, net6.0 are required to build and run all tests (it is possible to disable some targets in the test project if needed).  
-It is possible to use DefaultSerialization in Unity (check [FAQ](./documentation/FAQ.md#unity)).
+For development, a C#9.0 compatible environment, net framework 4.8, net8.0 are required to build and run all tests.  
 
 # Versioning
 This is the current strategy used to version DefaultSerialization: v0.major.minor

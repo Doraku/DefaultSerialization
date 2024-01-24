@@ -8,28 +8,18 @@ namespace DefaultSerialization.Internal
 {
     internal static class TypeNames
     {
-        #region Fields
-
         private static readonly ConcurrentDictionary<Type, string> _typeNames;
-
-        #endregion
-
-        #region Initialisation
 
         static TypeNames()
         {
             _typeNames = new ConcurrentDictionary<Type, string>();
         }
 
-        #endregion
-
-        #region Methods
-
         private static void WriteName(StringBuilder builder, Type type, bool writeNameSpace, bool writeAssembly)
         {
             if (type.IsArray)
             {
-                WriteName(builder, type.GetElementType(), writeNameSpace, false);
+                WriteName(builder, type.GetElementType()!, writeNameSpace, false);
                 builder.Append('[');
                 foreach (char c in Enumerable.Repeat(',', type.GetArrayRank() - 1))
                 {
@@ -80,7 +70,5 @@ namespace DefaultSerialization.Internal
         }
 
         public static string Get(Type type) => _typeNames.GetOrAdd(type, GetName);
-
-        #endregion
     }
 }

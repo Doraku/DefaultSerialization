@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,9 +12,9 @@ namespace DefaultSerialization.Internal.TextSerializer
 
         public InvariantCultureStreamWriter Stream { get; }
 
-        public TextSerializationContext Context { get; }
+        public TextSerializationContext? Context { get; }
 
-        public StreamWriterWrapper(Stream stream, TextSerializationContext context)
+        public StreamWriterWrapper(Stream stream, TextSerializationContext? context)
         {
             _indentation = 0;
 
@@ -40,7 +40,7 @@ namespace DefaultSerialization.Internal.TextSerializer
 
         public void WriteLine(string value) => Stream.WriteLine(value);
 
-        public void WriteValue<T>(in T value)
+        public void WriteValue<T>([MaybeNull] in T value)
         {
             if (Context?.TypeMarshalling != null)
             {
@@ -98,14 +98,15 @@ namespace DefaultSerialization.Internal.TextSerializer
 
         public bool EndOfStream => _stream.EndOfStream && _length == 0;
 
-        public TextSerializationContext Context { get; }
+        public TextSerializationContext? Context { get; }
+
         public int LineNumber { get; private set; }
 
-        public StreamReaderWrapper(Stream stream, TextSerializationContext context)
+        public StreamReaderWrapper(Stream stream, TextSerializationContext? context)
         {
             _stream = new StreamReader(stream, Encoding.UTF8, true, 1024, true);
 
-            _buffer = ArrayPool<char>.Shared.Rent(4096);
+            _buffer = new char[4096];
             _length = 0;
             _isQuotedString = false;
             _isEndOfLine = false;
@@ -171,7 +172,7 @@ namespace DefaultSerialization.Internal.TextSerializer
                     {
                         if (_length > 0)
                         {
-                            ArrayExtension.EnsureLength(ref _buffer, _length);
+                            ArrayExtensions.EnsureLength(ref _buffer, _length);
                             _buffer[_length] = c;
                             break;
                         }
@@ -203,7 +204,7 @@ namespace DefaultSerialization.Internal.TextSerializer
                         continue;
                     }
 
-                    ArrayExtension.EnsureLength(ref _buffer, _length);
+                    ArrayExtensions.EnsureLength(ref _buffer, _length);
                     _buffer[_length++] = c;
                 }
             }
@@ -245,9 +246,6 @@ namespace DefaultSerialization.Internal.TextSerializer
             return new ReadOnlySpan<char>(_buffer, 0, length);
         }
 
-#if NETSTANDARD2_1_OR_GREATER
-        public ReadOnlySpan<char> Read() => ReadAsSpan();
-#else
         public string Read()
         {
             InnerPeek(false);
@@ -258,7 +256,6 @@ namespace DefaultSerialization.Internal.TextSerializer
 
             return length > 0 ? new string(_buffer, 0, length) : string.Empty;
         }
-#endif
 
         public ReadOnlySpan<char> ReadFromLineAsSpan()
         {
@@ -313,6 +310,7 @@ namespace DefaultSerialization.Internal.TextSerializer
             _isEndOfLine = false;
         }
 
+        [return: MaybeNull]
         public T ReadValue<T>()
         {
             if (TryPeek("null") && !_isQuotedString)
@@ -324,7 +322,9 @@ namespace DefaultSerialization.Internal.TextSerializer
             if (TryPeek("$type") && !_isQuotedString)
             {
                 _length = 0;
-                return Converter.GetReadAction<T>(Type.GetType(ReadString(), true), Context)(this);
+                string typeName = ReadString();
+
+                return Converter.GetReadAction<T>(Type.GetType(typeName, true) ?? throw new InvalidOperationException($"unknown type \"{typeName}\""), Context)(this);
             }
 
             return Converter<T>.ReadAction(this);
@@ -332,11 +332,7 @@ namespace DefaultSerialization.Internal.TextSerializer
 
         #region IDisposable
 
-        public void Dispose()
-        {
-            ArrayPool<char>.Shared.Return(_buffer);
-            _stream.Dispose();
-        }
+        public void Dispose() => _stream.Dispose();
 
         #endregion
     }
